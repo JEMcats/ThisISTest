@@ -62,6 +62,12 @@ type ActiveSession = {
 };
 
 export class StreamingDelegate implements CameraStreamingDelegate {
+  getLivestreamManager(): LocalLivestreamManager {
+    throw new Error('Method not implemented.');
+  }
+  setController(controller: any) {
+    throw new Error('Method not implemented.');
+  }
   private readonly hap: HAP;
   private readonly api: API;
   private readonly log: Logger;

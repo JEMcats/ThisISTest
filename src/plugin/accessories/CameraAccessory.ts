@@ -1,17 +1,11 @@
 import {
-  Service,
-  PlatformAccessory,
-  Characteristic,
-  CharacteristicValue,
   CameraControllerOptions,
-  CameraRecordingOptions,
   AudioStreamingSamplerate,
   AudioStreamingCodecType,
   AudioRecordingSamplerate,
   AudioRecordingCodecType,
   Resolution,
-  HAP,
-} from 'homebridge';i
+} from 'homebridge'
 
 import { Service, PlatformAccessory, CharacteristicValue } from 'homebridge';
 
@@ -59,6 +53,7 @@ export class CameraAccessory extends DeviceAccessory {
     [1600, 1200, 30],
     [1920, 1080, 30],
   ];
+  device: Camera;
   
   constructor(
     platform: EufySecurityPlatform,
@@ -229,6 +224,9 @@ export class CameraAccessory extends DeviceAccessory {
 
     return option;
   }
+  getService(MotionSensor: any) {
+    throw new Error('Method not implemented.');
+  }
   private setupButtonService(
     serviceName: string,
     configValue: boolean | undefined,
@@ -322,8 +320,7 @@ export class CameraAccessory extends DeviceAccessory {
        this.registerCharacteristic({
          serviceType: this.platform.Service.CameraOperatingMode,
          characteristicType: this.platform.Characteristic.HomeKitCameraActive,
-         getValue: (data, characteristic) =>
-           this.getCameraPropertyValue(characteristic, PropertyName.DeviceEnabled),
+         getValue: async (data, characteristic) => this.getCameraPropertyValue(characteristic, PropertyName.DeviceEnabled),
          setValue: (value, characteristic) =>
            this.setCameraPropertyValue(characteristic, PropertyName.DeviceEnabled, value),
        });
@@ -332,8 +329,7 @@ export class CameraAccessory extends DeviceAccessory {
          this.registerCharacteristic({
            serviceType: this.platform.Service.CameraOperatingMode,
            characteristicType: this.platform.Characteristic.ManuallyDisabled,
-           getValue: (data, characteristic) =>
-             this.getCameraPropertyValue(characteristic, PropertyName.DeviceEnabled),
+           getValue: async (data, characteristic) => this.getCameraPropertyValue(characteristic, PropertyName.DeviceEnabled),
          });
        }
 
@@ -341,8 +337,7 @@ export class CameraAccessory extends DeviceAccessory {
          this.registerCharacteristic({
            serviceType: this.platform.Service.CameraOperatingMode,
            characteristicType: this.platform.Characteristic.CameraOperatingModeIndicator,
-           getValue: (data, characteristic) =>
-             this.getCameraPropertyValue(characteristic, PropertyName.DeviceStatusLed),
+           getValue: async (data, characteristic) => this.getCameraPropertyValue(characteristic, PropertyName.DeviceStatusLed),
            setValue: (value, characteristic) =>
              this.setCameraPropertyValue(characteristic, PropertyName.DeviceStatusLed, value),
          });
@@ -352,8 +347,7 @@ export class CameraAccessory extends DeviceAccessory {
          this.registerCharacteristic({
            serviceType: this.platform.Service.CameraOperatingMode,
            characteristicType: this.platform.Characteristic.NightVision,
-           getValue: (data, characteristic) =>
-             this.getCameraPropertyValue(characteristic, PropertyName.DeviceNightvision),
+           getValue: async (data, characteristic) => this.getCameraPropertyValue(characteristic, PropertyName.DeviceNightvision),
            setValue: (value, characteristic) =>
              this.setCameraPropertyValue(characteristic, PropertyName.DeviceNightvision, value),
          });
@@ -363,8 +357,7 @@ export class CameraAccessory extends DeviceAccessory {
          this.registerCharacteristic({
            serviceType: this.platform.Service.CameraOperatingMode,
            characteristicType: this.platform.Characteristic.NightVision,
-           getValue: (data, characteristic) =>
-             this.getCameraPropertyValue(characteristic, PropertyName.DeviceAutoNightvision),
+           getValue: async (data, characteristic) => this.getCameraPropertyValue(characteristic, PropertyName.DeviceAutoNightvision),
            setValue: (value, characteristic) =>
              this.setCameraPropertyValue(characteristic, PropertyName.DeviceAutoNightvision, value),
          });
@@ -409,6 +402,15 @@ export class CameraAccessory extends DeviceAccessory {
     );
 
     return service as Service;
+  }
+  registerCharacteristic(arg0: { serviceType: any; characteristicType: any; getValue: (data: any) => Promise<CharacteristicValue>; setValue: (value: any) => void; }) {
+    throw new Error('Method not implemented.');
+  }
+  getCameraPropertyValue(characteristic: any, DeviceEnabled: any) {
+    throw new Error('Method not implemented.');
+  }
+  setCameraPropertyValue(characteristic: any, DeviceEnabled: any, value: any) {
+    throw new Error('Method not implemented.');
   }
 
   private setupMotionFunction(
