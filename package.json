@@ -10,7 +10,7 @@
   },
 
   "bugs": {
-    "url": "https://github.com/homebridge-eufy-security/plugin/issues"
+    "url": "https://github.com/JEMcats/ThisISTest/issues"
   },
   "engines": {
     "node": ">=18.15.0",
