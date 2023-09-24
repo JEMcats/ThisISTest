@@ -68,7 +68,7 @@ export class StreamingDelegate implements CameraStreamingDelegate {
   private readonly cameraName: string;
   private cameraConfig: CameraConfig;
   private videoConfig: VideoConfig;
-  private controller?: CameraController;
+  readonly controller: CameraController;
 
   private readonly platform: EufySecurityPlatform;
   private readonly device: Camera;
@@ -99,6 +99,7 @@ export class StreamingDelegate implements CameraStreamingDelegate {
     this.localLivestreamManager = new LocalLivestreamManager(
       this.platform,
       this.device,
+      this.cameraConfig.useCachedLocalLivestream,
       this.log,
     );
 
@@ -110,10 +111,6 @@ export class StreamingDelegate implements CameraStreamingDelegate {
       }
       this.localLivestreamManager.stopLocalLiveStream();
     });
-  }
-    public setController(controller: CameraController) {
-      this.controller = controller;
-    
 
     let samplerate = AudioStreamingSamplerate.KHZ_16;
     if (this.videoConfig.audioSampleRate === 8) {
@@ -162,7 +159,6 @@ export class StreamingDelegate implements CameraStreamingDelegate {
       },
     };
 
-    this.log.debug(this.cameraName, `stream prepare request with session id ${request.sessionID} was received.`);
     this.controller = new hap.CameraController(options);
   }
 
@@ -234,7 +230,12 @@ export class StreamingDelegate implements CameraStreamingDelegate {
     callback(undefined, response);
   }
 
-
+  public async prepareCachedStream(): Promise<void> {
+    if (!is_rtsp_ready(this.device, this.cameraConfig, this.log)) {
+      const proxyStream = await this.localLivestreamManager.getLocalLivestream();
+      this.localLivestreamManager.stopProxyStream(proxyStream.id);
+    }
+  }
 
   private async startStream(request: StartStreamRequest, callback: StreamRequestCallback): Promise<void> {
     const sessionInfo = this.pendingSessions.get(request.sessionID);
@@ -307,9 +308,7 @@ export class StreamingDelegate implements CameraStreamingDelegate {
           return;
         }
       }
-      if (this.cameraConfig.talkbackChannels) {
-        talkbackParameters.setTalkbackChannels(this.cameraConfig.talkbackChannels);
-      }
+
       const useSeparateProcesses = this.videoConfig.useSeparateProcesses ??= false;
 
       const videoProcess = new FFmpeg(
@@ -380,8 +379,6 @@ export class StreamingDelegate implements CameraStreamingDelegate {
     switch (request.type) {
       case StreamRequestTypes.START:
         this.startStream(request, callback);
-        this.log.debug(this.cameraName, `Received request to start stream with id ${request.sessionID}`);
-        this.log.debug(this.cameraName, `request data: ${JSON.stringify(request)}`);
         break;
       case StreamRequestTypes.RECONFIGURE:
         this.log.debug(
