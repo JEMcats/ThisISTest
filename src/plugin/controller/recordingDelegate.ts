@@ -275,4 +275,4 @@ export class RecordingDelegate implements CameraRecordingDelegate {
     this.log.debug('end of recording acknowledged!');
     this.closeRecordingStream(streamId, undefined);
   }
-} 
+}
