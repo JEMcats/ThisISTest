@@ -49,7 +49,7 @@ class AudiostreamProxy extends Readable {
     this.destroy();
   }
 
-  override _read(size: number): void {
+  _read(size: number): void {
     let pushReturn = true;
     while (this.cacheData.length > 0 && pushReturn) {
       const data = this.cacheData.shift();
@@ -74,8 +74,7 @@ class VideostreamProxy extends Readable {
   private pushNewDataImmediately = false;
   private dataFramesCount = 0;
 
-
-  constructor(id: number, manager: LocalLivestreamManager, log: TsLogger<ILogObj>) {
+  constructor(id: number, cacheData: Array<Buffer>, manager: LocalLivestreamManager, log: Logger) {
     super();
 
     this.livestreamId = id;
@@ -125,7 +124,7 @@ class VideostreamProxy extends Readable {
     }, 15000);
   }
 
-  override _read(size: number): void {
+  _read(size: number): void {
     this.resetKillTimeout();
     let pushReturn = true;
     while (this.cacheData.length > 0 && pushReturn) {
@@ -169,13 +168,17 @@ export class LocalLivestreamManager extends EventEmitter {
   private readonly platform: EufySecurityPlatform;
   private readonly device: Camera;
   
-  constructor(platform: EufySecurityPlatform, device: Camera, log: TsLogger<ILogObj>) {   
+  constructor(platform: EufySecurityPlatform, device: Camera, cacheEnabled: boolean, log: Logger) {    
     super();
 
     this.log = log;
     this.platform = platform;
     this.device = device;
 
+    this.cacheEnabled = cacheEnabled;
+    if (this.cacheEnabled) {
+      this.log.debug('Livestream caching for ' + this.device.getName() + ' is enabled.');
+    }
 
     this.stationStream = null;
     this.livestreamStartedAt = null;
@@ -311,6 +314,11 @@ export class LocalLivestreamManager extends EventEmitter {
       }
       this.initialize(); // important to prevent unwanted behaviour when the eufy station emits the 'livestream start' event multiple times
       videostream.on('data', (data) => {
+        if(this.isIFrame(data)) { // cache iFrames to speed up livestream encoding
+          this.iFrameCache = [data];
+        } else if (this.iFrameCache.length > 0) {
+          this.iFrameCache.push(data);
+        }
 
         this.proxyStreams.forEach((proxyStream) => {
           proxyStream.videostream.newVideoData(data);
@@ -360,7 +368,7 @@ export class LocalLivestreamManager extends EventEmitter {
       if (this.livestreamCount > 1024) {
         this.livestreamCount = 1;
       }
-      const videostream = new VideostreamProxy(id, this, this.log);
+      const videostream = new VideostreamProxy(id, this.iFrameCache, this, this.log);
       const audiostream = new AudiostreamProxy(this.log);
       const proxyStream = { id, videostream, audiostream };
       this.proxyStreams.add(proxyStream);

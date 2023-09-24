@@ -128,17 +128,6 @@ import {
        if (getValue) {
          characteristic.onGet(async (data) => {
            const value = getValue(data, characteristic, service);
-  
-      
-          
-            
-      
-  
-          
-          Expand All
-      
-      @@ -144,12 +148,12 @@ export abstract class BaseAccessory extends EventEmitter {
-    
           this.platform.log.debug(`${this.accessory.displayName} GET '${serviceType.name} / ${characteristicType.name}': ${value}`);
           return value;
         });
